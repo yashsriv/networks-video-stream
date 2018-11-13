@@ -23,11 +23,6 @@ const (
 	maxMessageSize = 512
 )
 
-var (
-	newline = []byte{'\n'}
-	space   = []byte{' '}
-)
-
 type Client struct {
 	hub *Hub
 
@@ -48,11 +43,13 @@ type Client struct {
 // reads from this goroutine.
 func (c *Client) readPump() {
 	defer func() {
-		c.hub.unregister <- c
+		if c.hub != nil {
+			c.hub.unregister <- c
+		}
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	// c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { return c.conn.SetReadDeadline(time.Now().Add(pongWait)) })
 	for {
 		var message websocketMsg
@@ -69,6 +66,7 @@ func (c *Client) readPump() {
 			if room, ok := rooms[jMsg.Room]; ok {
 				c.hub = room
 				room.register <- c
+				c.send <- &websocketMsg{Type: joined}
 			} else {
 				return
 			}
@@ -78,6 +76,12 @@ func (c *Client) readPump() {
 			rooms[roomName] = room
 			c.hub = room
 			room.register <- c
+			c.send <- &websocketMsg{
+				Type: created,
+				Body: websocketCreatedMsg{
+					Room: roomName,
+				},
+			}
 		default:
 			if c.hub == nil {
 				return
@@ -109,11 +113,6 @@ func (c *Client) writePump() {
 			}
 
 			c.conn.WriteJSON(message)
-			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				c.conn.WriteJSON(<-c.send)
-			}
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {

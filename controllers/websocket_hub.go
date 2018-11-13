@@ -61,6 +61,9 @@ func (h *Hub) run() {
 				h.userClients[client.username] = make(map[*Client]bool)
 			}
 			h.userClients[client.username][client] = true
+			if client != h.initiator {
+				h.initiator.send <- &websocketMsg{Type: joinedInform}
+			}
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				if _, ok := h.userClients[client.username]; ok {
