@@ -44,31 +44,16 @@ func newHub(initiator *Client) *Hub {
 }
 
 func (h *Hub) handle(m *websocketMsg, c *Client) {
+	m.From = c.uid
 	if m.To != "" {
-		m.From = c.uid
-		if client, ok := h.idClients[m.To]; ok {
-			select {
-			case client.send <- m:
-			default:
-				close(client.send)
-				delete(h.clients, client)
-				delete(h.idClients, client.uid)
-			}
+		h.target <- websocketTarget{
+			Target:  m.To,
+			Message: m,
 		}
 		return
 	}
 	if c == h.initiator {
-		for client := range h.clients {
-			if client != c {
-				select {
-				case client.send <- m:
-				default:
-					close(client.send)
-					delete(h.clients, client)
-					delete(h.idClients, client.uid)
-				}
-			}
-		}
+		h.broadcast <- m
 	}
 }
 
