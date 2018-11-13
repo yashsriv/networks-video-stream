@@ -1,10 +1,9 @@
 'use strict';
 
 var isChannelReady = false;
-var isInitiator = false;
 var isStarted = false;
-var localStream;
 var pc;
+var ownerId;
 var remoteStream;
 var turnReady;
 
@@ -22,6 +21,8 @@ var sdpConstraints = {
 
 /////////////////////////////////////////////
 
+var remoteVideo = document.querySelector('#remoteVideo');
+
 var room = '';
 // Could prompt for room name:
 // room = prompt('Enter room name:');
@@ -29,11 +30,6 @@ var room = '';
 var socket = new WebSocket("ws://" + window.location.host + "/ws");
 
 socket.onopen = function(event) {
-  document.getElementById('create').onclick = function() {
-    sendMessage({type: 'create-room'});
-    isInitiator = true;
-    main();
-  };
   document.getElementById('join').onclick = function() {
     room = prompt('Enter room name:');
     sendMessage({type: 'join-room', body: { room: room }});
@@ -45,22 +41,10 @@ socket.onmessage = function(event) {
   var msg = JSON.parse(event.data);
 
   switch(msg.type) {
-    case "created-room": {
-      room = msg.body.room;
-      console.log('Created room ' + room);
-      isInitiator = true;
-    }
-    break;
-    case "joined-room-inform": {
-      console.log('Another peer made a request to join room ' + room);
-      console.log('This peer is the initiator of room ' + room + '!');
-      isChannelReady = true;
-      maybeStart();
-    }
-    break;
     case "joined-room": {
       console.log('joined: ' + room);
       isChannelReady = true;
+      ownerId = msg.from;
     }
     break;
     case "got-user-media": {
@@ -68,17 +52,11 @@ socket.onmessage = function(event) {
     }
     break;
     case "offer": {
-      if (!isInitiator && !isStarted) {
+      if (!isStarted) {
         maybeStart();
       }
       pc.setRemoteDescription(new RTCSessionDescription(msg.body));
       doAnswer();
-    }
-    break;
-    case "answer": {
-      if (isStarted) {
-        pc.setRemoteDescription(new RTCSessionDescription(msg.body));
-      }
     }
     break;
     case "candidate": {
@@ -106,59 +84,24 @@ function sendMessage(message) {
 }
 
 function main() {
-  if (isInitiator) {
-    var constraints = {
-      audio: true,
-      video: true
-    };
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then(gotStream)
-      .catch(function(e) {
-        alert('getUserMedia() error: ' + e.name);
-      });
-
-    console.log('Getting user media with constraints', constraints);
-  }
-
   // if (location.hostname !== 'localhost') {
   //   requestTurn(
   //     'https://computeengineondemand.appspot.com/turn?username=41784574&key=4080218913'
   //   );
   // }
-
 }
-
-var localVideo = document.querySelector('#localVideo');
-var remoteVideo = document.querySelector('#remoteVideo');
-
-
-function gotStream(stream) {
-  console.log('Adding local stream.');
-  localStream = stream;
-  localVideo.srcObject = stream;
-  sendMessage({ type: 'got-user-media' });
-  if (isInitiator) {
-    maybeStart();
-  }
-}
-
 
 function maybeStart() {
-  console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
-  if (!isStarted && (typeof localStream !== 'undefined' || !isInitiator) && isChannelReady) {
+  console.log('>>>>>>> maybeStart() ', isStarted, isChannelReady);
+  if (!isStarted &&  isChannelReady) {
     console.log('>>>>>> creating peer connection');
     createPeerConnection();
     isStarted = true;
-    console.log('isInitiator', isInitiator);
-    if (isInitiator) {
-      pc.addStream(localStream);
-      doCall();
-    }
   }
 }
 
 window.onbeforeunload = function() {
-  sendMessage({ type: 'bye' });
+  sendMessage({ type: 'bye', to: ownerId });
 };
 
 /////////////////////////////////////////////////////////
@@ -181,6 +124,7 @@ function handleIceCandidate(event) {
   console.log('icecandidate event: ', event);
   if (event.candidate) {
     sendMessage({
+      to: ownerId,
       type: 'candidate',
       body: {
         label: event.candidate.sdpMLineIndex,
@@ -191,15 +135,6 @@ function handleIceCandidate(event) {
   } else {
     console.log('End of candidates.');
   }
-}
-
-function handleCreateOfferError(event) {
-  console.log('createOffer() error: ', event);
-}
-
-function doCall() {
-  console.log('Sending offer to peer');
-  pc.createOffer(setLocalAndSendMessage, handleCreateOfferError);
 }
 
 function doAnswer() {
@@ -213,7 +148,7 @@ function doAnswer() {
 function setLocalAndSendMessage(sessionDescription) {
   pc.setLocalDescription(sessionDescription);
   console.log('setLocalAndSendMessage sending message', sessionDescription);
-  sendMessage({ type: sessionDescription.type, body: sessionDescription });
+  sendMessage({ to: ownerId, type: sessionDescription.type, body: sessionDescription });
 }
 
 function onCreateSessionDescriptionError(error) {
@@ -262,13 +197,12 @@ function handleRemoteStreamRemoved(event) {
 function hangup() {
   console.log('Hanging up.');
   stop();
-  sendMessage({type: 'bye'});
+  sendMessage({type: 'bye', to: ownerId});
 }
 
 function handleRemoteHangup() {
   console.log('Session terminated.');
-  // stop();
-  // isInitiator = false;
+  stop();
 }
 
 function stop() {

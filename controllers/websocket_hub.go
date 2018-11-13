@@ -45,6 +45,7 @@ func newHub(initiator *Client) *Hub {
 
 func (h *Hub) handle(m *websocketMsg, c *Client) {
 	if m.To != "" {
+		m.From = c.uid
 		if client, ok := h.idClients[m.To]; ok {
 			select {
 			case client.send <- m:
@@ -56,14 +57,16 @@ func (h *Hub) handle(m *websocketMsg, c *Client) {
 		}
 		return
 	}
-	for client := range h.clients {
-		if client != c {
-			select {
-			case client.send <- m:
-			default:
-				close(client.send)
-				delete(h.clients, client)
-				delete(h.idClients, client.uid)
+	if c == h.initiator {
+		for client := range h.clients {
+			if client != c {
+				select {
+				case client.send <- m:
+				default:
+					close(client.send)
+					delete(h.clients, client)
+					delete(h.idClients, client.uid)
+				}
 			}
 		}
 	}
@@ -77,10 +80,8 @@ func (h *Hub) run() {
 			h.idClients[client.uid] = client
 			if client != h.initiator {
 				h.initiator.send <- &websocketMsg{
+					From: client.uid,
 					Type: joinedInform,
-					Body: websocketJoinedInformMsg{
-						ID: client.uid,
-					},
 				}
 			}
 		case client := <-h.unregister:

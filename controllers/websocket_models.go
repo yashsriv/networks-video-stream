@@ -13,6 +13,7 @@ const (
 type websocketMsg struct {
 	Type websocketMsgType `json:"type"`
 	To   string           `json:"to"`
+	From string           `json:"from"`
 	Body interface{}      `json:"body"`
 }
 
@@ -23,10 +24,6 @@ type websocketTarget struct {
 
 type websocketJoinMsg struct {
 	Room string `json:"room"`
-}
-
-type websocketJoinedInformMsg struct {
-	ID string `json:"id"`
 }
 
 type websocketCreatedMsg struct {

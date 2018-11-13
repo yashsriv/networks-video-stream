@@ -81,7 +81,7 @@ func (c *Client) readPump() {
 			if room, ok := rooms[jMsg.Room]; ok {
 				c.hub = room
 				room.register <- c
-				c.send <- &websocketMsg{Type: joined}
+				c.send <- &websocketMsg{Type: joined, From: room.initiator.uid}
 			} else {
 				return
 			}
