@@ -1,0 +1,45 @@
+<div fxLayout="column" fxLayoutAlign="center center" class="container">
+  <mat-card>
+    <mat-card-title>Login</mat-card-title>
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div fxLayout="column" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" [class.hidden]="selectedUser != null">
+            <input matInput placeholder="IITK Username" formControlName="username" required [matAutocomplete]="auto" #username>
+            <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="selected($event)">
+              <mat-option *ngFor="let result of searchResults$ | async" [value]="result.username">
+                <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+                  <div class="img" [style.background-image]="result | DP"></div>
+                  <div fxLayout="column" fxLayoutAlign="start center" class="info">
+                    <span class="name"> {{ result.name }} ({{ result.username }}) </span>
+                  </div>
+                </div>
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+          <div class="view" *ngIf="selectedUser != null" fxLayout="row" fxLayoutAlign="space-between center" >
+            <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+              <div class="img" [style.background-image]="selectedUser | DP"></div>
+              <div fxLayout="column" fxLayoutAlign="start center" class="info">
+                <span class="name"> {{ selectedUser.name }} ({{ selectedUser.username }}) </span>
+              </div>
+            </div>
+            <div class="close-button">
+              <button mat-icon-button type="button" (click)="clearSelection()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- <mat-form-field appearance="outline"> -->
+          <!-- <input matInput placeholder="Password" type="password" formControlName="password" required #password> -->
+          <!-- </mat-form-field> -->
+
+          <div fxLayout="row" fxLayoutAlign="center center" class="button-container">
+            <button type="submit" [disabled]="!loginForm.valid" mat-stroked-button>Login</button>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

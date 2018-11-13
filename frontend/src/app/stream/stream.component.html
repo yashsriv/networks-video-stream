@@ -1,0 +1,12 @@
+<div class="video-container" fxLayout="row" fxLayout.lt-sm="column" fxLayoutAlign="start stretch">
+  <video fxFlex="0 1 auto" #localVideo autoplay muted playsinline>
+  </video>
+  <div fxFlex="1 1 auto" class="chats">
+    <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+      <span class="url mat-headline">
+        {{ initial }}{{ room }}
+      </span>
+      <button mat-stroked-button class="copy" ngxClipboard [cbContent]="initial+room">Copy</button>
+    </div>
+  </div>
+</div>

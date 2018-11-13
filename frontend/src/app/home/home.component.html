@@ -1,0 +1,20 @@
+<div class="container" fxLayout="column">
+  <mat-toolbar color="primary" class="navbar">
+    <span routerLink="/">
+      Video Streamer
+    </span>
+    <!-- This fills the remaining space of the current row -->
+    <span fxFlex="1 1 auto"></span>
+    <div *ngIf="user" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px" matRipple class="user-info">
+      <div class="img" [style.background-image]="user | DP"></div>
+      <span class="name" fxHide.lt-sm> {{ user.name }} </span>
+    </div>
+
+    <span class="logout">
+      <button matTooltip="Logout" aria-label="Logout from the app" mat-icon-button (click)="onLogout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </span>
+  </mat-toolbar>
+  <router-outlet></router-outlet>
+</div>

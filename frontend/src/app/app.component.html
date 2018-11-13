@@ -1,0 +1,6 @@
+<div *ngIf="loading; else routes" class="loading-container" fxLayout="column" fxLayoutAlign="center center">
+  <mat-spinner></mat-spinner>
+</div>
+<ng-template #routes>
+  <router-outlet></router-outlet>
+</ng-template>

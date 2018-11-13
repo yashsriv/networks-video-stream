@@ -1,0 +1,19 @@
+@import '~@angular/material/theming';
+
+$xs-break: 'screen and (max-width: 599px)';
+$sm-break: 'screen and (min-width: 600px) and (max-width: 959px)';
+$md-break: 'screen and (min-width: 960px) and (max-width: 1279px)';
+$lg-break: 'screen and (min-width: 1280px) and (max-width: 1919px)';
+$xl-break: 'screen and (min-width: 1920px) and (max-width: 5000px)';
+
+$lt-sm-break: 'screen and (max-width: 599px)';
+$lt-md-break: 'screen and (max-width: 959px)';
+$lt-lg-break: 'screen and (max-width: 1279px)';
+$lt-xl-break: 'screen and (max-width: 1919px)';
+
+$gt-xs-break: 'screen and (min-width: 600px)';
+$gt-sm-break: 'screen and (min-width: 960px)';
+$gt-md-break: 'screen and (min-width: 1280px)';
+$gt-lg-break: 'screen and (min-width: 1920px)';
+
+$background-color: map_get($mat-grey, 50);

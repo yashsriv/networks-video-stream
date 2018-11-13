@@ -1,0 +1,41 @@
+@import '../../variables.scss';
+
+.navbar {
+  .img {
+    background-size: cover;
+    border-radius: 40px;
+    height: 40px;
+    width: 40px;
+
+    @media #{$lt-sm-break} {
+      margin-right: 10px;
+    }
+  }
+
+  .logout {
+    margin-left: 10px;
+
+    @media #{$lt-sm-break} {
+      margin-left: 0;
+    }
+  }
+
+  .menu {
+    margin-right: 10px;
+  }
+
+  .name {
+    margin-right: 10px;
+  }
+
+  .user-info {
+    cursor: pointer;
+    padding: 12px;
+  }
+}
+
+.container {
+  background-color: $background-color;
+  color: black;
+  height: 100vh;
+}

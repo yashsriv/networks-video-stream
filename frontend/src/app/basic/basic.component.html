@@ -1,0 +1,17 @@
+<div fxFlex="grow" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="10px">
+  <div fxLayout="row" fxLayoutAlign="center center">
+    <mat-form-field>
+      <input matInput placeholder="Type a room ID..." [formControl]="joinCtrl" (keyup.enter)="onJoin()">
+    </mat-form-field>
+    <button mat-flat-button color="primary" (click)="onJoin()" class="join">
+      Join a room
+    </button>
+  </div>
+  <span class="mat-display-1">OR</span>
+  <div>
+    <button mat-flat-button color="primary" (click)="onCreate()" class="create">
+      Create a new room
+    </button>
+  </div>
+
+</div>
