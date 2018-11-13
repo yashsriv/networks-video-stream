@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", ":8080", "TCP address to listen to")
+	addr = flag.String("addr", "0.0.0.0:8080", "TCP address to listen to")
 )
 
 func main() {

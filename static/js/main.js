@@ -26,16 +26,17 @@ var room = '';
 // Could prompt for room name:
 // room = prompt('Enter room name:');
 
-var socket = new WebSocket("ws://localhost:8080/ws");
+var socket = new WebSocket("ws://" + window.location.host + "/ws");
 
 socket.onopen = function(event) {
   document.getElementById('create').onclick = function() {
-    sendMessage({type: 'create'});
+    sendMessage({type: 'create-room'});
+    isInitiator = true;
     main();
   };
   document.getElementById('join').onclick = function() {
     room = prompt('Enter room name:');
-    sendMessage({type: 'join', body: { room: room }});
+    sendMessage({type: 'join-room', body: { room: room }});
     main();
   };
 };
@@ -44,8 +45,8 @@ socket.onmessage = function(event) {
   var msg = JSON.parse(event.data);
 
   switch(msg.type) {
-    case "created": {
-      room = msg.room;
+    case "created-room": {
+      room = msg.body.room;
       console.log('Created room ' + room);
       isInitiator = true;
     }
@@ -54,6 +55,7 @@ socket.onmessage = function(event) {
       console.log('Another peer made a request to join room ' + room);
       console.log('This peer is the initiator of room ' + room + '!');
       isChannelReady = true;
+      maybeStart();
     }
     break;
     case "joined-room": {
@@ -104,25 +106,25 @@ function sendMessage(message) {
 }
 
 function main() {
-  navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: true
-  })
-    .then(gotStream)
-    .catch(function(e) {
-      alert('getUserMedia() error: ' + e.name);
-    });
-  var constraints = {
-    video: true
-  };
+  if (isInitiator) {
+    var constraints = {
+      audio: true,
+      video: true
+    };
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(gotStream)
+      .catch(function(e) {
+        alert('getUserMedia() error: ' + e.name);
+      });
 
-  console.log('Getting user media with constraints', constraints);
-
-  if (location.hostname !== 'localhost') {
-    requestTurn(
-      'https://computeengineondemand.appspot.com/turn?username=41784574&key=4080218913'
-    );
+    console.log('Getting user media with constraints', constraints);
   }
+
+  // if (location.hostname !== 'localhost') {
+  //   requestTurn(
+  //     'https://computeengineondemand.appspot.com/turn?username=41784574&key=4080218913'
+  //   );
+  // }
 
 }
 
@@ -143,13 +145,13 @@ function gotStream(stream) {
 
 function maybeStart() {
   console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
-  if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
+  if (!isStarted && (typeof localStream !== 'undefined' || !isInitiator) && isChannelReady) {
     console.log('>>>>>> creating peer connection');
     createPeerConnection();
-    pc.addStream(localStream);
     isStarted = true;
     console.log('isInitiator', isInitiator);
     if (isInitiator) {
+      pc.addStream(localStream);
       doCall();
     }
   }
@@ -265,8 +267,8 @@ function hangup() {
 
 function handleRemoteHangup() {
   console.log('Session terminated.');
-  stop();
-  isInitiator = false;
+  // stop();
+  // isInitiator = false;
 }
 
 function stop() {

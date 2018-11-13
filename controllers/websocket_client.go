@@ -2,10 +2,12 @@ package controllers
 
 // Client is a middleman between the websocket connection and the hub.
 import (
+	"encoding/json"
 	"log"
 	"time"
 
 	"github.com/fasthttp/websocket"
+
 	"github.com/yashsriv/networks-video-stream/utils"
 )
 
@@ -20,7 +22,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512
+	maxMessageSize = 5120
 )
 
 type Client struct {
@@ -34,6 +36,9 @@ type Client struct {
 
 	// Username
 	username string
+
+	// UID
+	uid string
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -62,7 +67,17 @@ func (c *Client) readPump() {
 		}
 		switch message.Type {
 		case join:
-			jMsg := message.Body.(websocketJoinMsg)
+			b, err := json.Marshal(message.Body)
+			if err != nil {
+				log.Printf("error: %v", err)
+				return
+			}
+			var jMsg websocketJoinMsg
+			err = json.Unmarshal(b, &jMsg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				return
+			}
 			if room, ok := rooms[jMsg.Room]; ok {
 				c.hub = room
 				room.register <- c
@@ -73,6 +88,7 @@ func (c *Client) readPump() {
 		case create:
 			roomName := utils.RandStringBytesMaskImpr(6)
 			room := newHub(c)
+			go room.run()
 			rooms[roomName] = room
 			c.hub = room
 			room.register <- c
@@ -83,10 +99,9 @@ func (c *Client) readPump() {
 				},
 			}
 		default:
-			if c.hub == nil {
-				return
+			if c.hub != nil {
+				c.hub.handle(&message, c)
 			}
-			c.hub.handle(&message, c)
 		}
 	}
 }

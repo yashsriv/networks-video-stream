@@ -6,8 +6,8 @@ type Hub struct {
 	// Registered clients.
 	clients map[*Client]bool
 
-	// Clients of a particular username
-	userClients map[string]map[*Client]bool
+	// Clients of a particular ID
+	idClients map[string]*Client
 
 	// Inbound messages from the clients.
 	broadcast chan *websocketMsg
@@ -27,19 +27,35 @@ type Hub struct {
 
 var rooms map[string]*Hub
 
+func init() {
+	rooms = make(map[string]*Hub)
+}
+
 func newHub(initiator *Client) *Hub {
 	return &Hub{
-		broadcast:   make(chan *websocketMsg),
-		target:      make(chan websocketTarget),
-		register:    make(chan *Client),
-		unregister:  make(chan *Client),
-		clients:     make(map[*Client]bool),
-		userClients: make(map[string]map[*Client]bool),
-		initiator:   initiator,
+		broadcast:  make(chan *websocketMsg),
+		target:     make(chan websocketTarget),
+		register:   make(chan *Client),
+		unregister: make(chan *Client),
+		clients:    make(map[*Client]bool),
+		idClients:  make(map[string]*Client),
+		initiator:  initiator,
 	}
 }
 
 func (h *Hub) handle(m *websocketMsg, c *Client) {
+	if m.To != "" {
+		if client, ok := h.idClients[m.To]; ok {
+			select {
+			case client.send <- m:
+			default:
+				close(client.send)
+				delete(h.clients, client)
+				delete(h.idClients, client.uid)
+			}
+		}
+		return
+	}
 	for client := range h.clients {
 		if client != c {
 			select {
@@ -47,6 +63,7 @@ func (h *Hub) handle(m *websocketMsg, c *Client) {
 			default:
 				close(client.send)
 				delete(h.clients, client)
+				delete(h.idClients, client.uid)
 			}
 		}
 	}
@@ -57,19 +74,19 @@ func (h *Hub) run() {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
-			if h.userClients[client.username] == nil {
-				h.userClients[client.username] = make(map[*Client]bool)
-			}
-			h.userClients[client.username][client] = true
+			h.idClients[client.uid] = client
 			if client != h.initiator {
-				h.initiator.send <- &websocketMsg{Type: joinedInform}
+				h.initiator.send <- &websocketMsg{
+					Type: joinedInform,
+					Body: websocketJoinedInformMsg{
+						ID: client.uid,
+					},
+				}
 			}
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
-				if _, ok := h.userClients[client.username]; ok {
-					if _, ok := h.userClients[client.username][client]; ok {
-						delete(h.userClients[client.username], client)
-					}
+				if _, ok := h.idClients[client.uid]; ok {
+					delete(h.idClients, client.uid)
 				}
 				delete(h.clients, client)
 				close(client.send)
@@ -84,14 +101,13 @@ func (h *Hub) run() {
 				}
 			}
 		case message := <-h.target:
-			for client := range h.userClients[message.Target] {
-				select {
-				case client.send <- message.Message:
-				default:
-					close(client.send)
-					delete(h.clients, client)
-					delete(h.userClients[message.Target], client)
-				}
+			client := h.idClients[message.Target]
+			select {
+			case client.send <- message.Message:
+			default:
+				close(client.send)
+				delete(h.clients, client)
+				delete(h.idClients, message.Target)
 			}
 		}
 	}
