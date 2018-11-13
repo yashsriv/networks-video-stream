@@ -1,8 +1,12 @@
-body {
-  font-family: sans-serif;
+.container {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  justify-content: center;
 }
 
-video {
-  max-width: 100%;
-  width: 320px;
+.empty {
+  max-width: 90%;
+  width: 500px;
 }
