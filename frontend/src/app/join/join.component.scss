@@ -1,9 +1,12 @@
+@import '../../variables.scss';
+
 :host {
   flex: 1 1 100%;
 }
 
 .video-container {
   // text-align: center;
+  position: relative;
 }
 video {
   background-color: black;
@@ -14,6 +17,7 @@ video {
 }
 
 .chats {
+  overflow: hidden;
 }
 
 .url {
@@ -23,4 +27,84 @@ video {
 
 .copy {
   margin: 0 0 16px;
+}
+
+.missing-overlay {
+  background-color: #030303;
+  color: white;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.user-info {
+  cursor: pointer;
+  padding: 12px;
+  margin-bottom: 16px;
+
+  .name {
+    margin-right: 10px;
+  }
+
+  .img {
+    background-size: cover;
+    border-radius: 40px;
+    height: 40px;
+    width: 40px;
+
+    @media #{$lt-sm-break} {
+      margin-right: 10px;
+    }
+  }
+}
+
+.chat-wrapper {
+  overflow-y: hidden;
+  position: relative;
+  .chat-container {
+    bottom: 0;
+    left: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+
+    .person-chats {
+      overflow-y: auto;
+    }
+  }
+  [contenteditable] {
+    border-top: solid 1px $dark-dividers;
+    padding: 20px;
+    &:empty:before {
+      content: attr(data-placeholder);
+      color: grey;
+      display: inline-block;
+    }
+  }
+
+  .chat-img {
+    background-size: cover;
+    border-radius: 28px;
+    height: 28px;
+    width: 28px;
+  }
+
+  .each-chat {
+    margin: 10px 0;
+    padding: 0 10px;
+  }
+
+  .chat-body {
+    border: solid 1px $dark-dividers;
+    border-radius: 4px;
+    max-width: 60%;
+    padding: 10px;
+    &.sent {
+      background-color: map_get($mat-deep-purple, 500);
+      color: white;
+    }
+  }
 }

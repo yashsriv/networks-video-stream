@@ -3,6 +3,7 @@ package controllers
 // Client is a middleman between the websocket connection and the hub.
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -48,6 +49,11 @@ type Client struct {
 // reads from this goroutine.
 func (c *Client) readPump() {
 	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Panic Recovered in readPump", r)
+		}
+	}()
+	defer func() {
 		if c.hub != nil {
 			c.hub.unregister <- c
 		}
@@ -81,17 +87,20 @@ func (c *Client) readPump() {
 			if room, ok := rooms[jMsg.Room]; ok {
 				c.hub = room
 				room.register <- c
-				c.send <- &websocketMsg{Type: joined, From: room.initiator.uid}
+				output.Printf("[ws] joined | %s | %s", room.roomName, c.username)
+				c.send <- &websocketMsg{Type: joined, From: room.initiator.uid, Body: room.initiator.username}
 			} else {
-				return
+				output.Printf("[ws] not-found | %s | %s", jMsg.Room, c.username)
+				c.send <- &websocketMsg{Type: notFound}
 			}
 		case create:
 			roomName := utils.RandStringBytesMaskImpr(6)
-			room := newHub(c)
-			go room.run()
+			room := newHub(c, roomName)
 			rooms[roomName] = room
+			go room.run()
 			c.hub = room
 			room.register <- c
+			output.Printf("[ws] create | %s | %s", roomName, c.username)
 			c.send <- &websocketMsg{
 				Type: created,
 				Body: websocketCreatedMsg{
@@ -113,6 +122,11 @@ func (c *Client) readPump() {
 // executing all writes from this goroutine.
 func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Panic Recovered in writePump", r)
+		}
+	}()
 	defer func() {
 		ticker.Stop()
 		c.conn.Close()

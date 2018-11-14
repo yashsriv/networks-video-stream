@@ -26,12 +26,14 @@ import { HomeComponent } from './home';
 import { StreamComponent } from './stream';
 import { JoinComponent } from './join';
 import { BasicComponent } from './basic';
+import { GetUserPipe } from './get-user-pipe/get-user.pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
     BasicComponent,
     DPPipe,
+    GetUserPipe,
     HomeComponent,
     JoinComponent,
     LoginComponent,

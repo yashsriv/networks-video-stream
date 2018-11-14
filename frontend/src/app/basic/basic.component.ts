@@ -12,7 +12,7 @@ export class BasicComponent {
   constructor(private router: Router) {}
 
   onJoin() {
-    this.router.navigate(['/', this.joinCtrl.value]);
+    this.router.navigate(['/join', this.joinCtrl.value]);
   }
 
   onCreate() {

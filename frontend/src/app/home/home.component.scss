@@ -1,6 +1,10 @@
 @import '../../variables.scss';
 
 .navbar {
+  .title {
+    cursor: pointer;
+  }
+
   .img {
     background-size: cover;
     border-radius: 40px;

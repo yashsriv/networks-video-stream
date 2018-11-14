@@ -1,5 +1,8 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { UsersService } from '../users.service';
+import { User } from '../models/user';
+import { AuthService } from '../auth.service';
 
 const pcConfig = {
   iceServers: [
@@ -25,18 +28,40 @@ export class JoinComponent {
   private isStarted = false;
   private pc: RTCPeerConnection;
   private ownerId: string;
+  private ownerUsername: string;
   private remoteStream: MediaStream;
   private turnReady;
   private socket: WebSocket;
+  private missing = false;
 
+  public chats: { from: string; body: string }[] = [];
+
+  @ViewChild('chatContainer')
+  private chatContainer: ElementRef<HTMLDivElement>;
+  @ViewChild('chat')
+  private chat: ElementRef<HTMLDivElement>;
   @ViewChild('remoteVideo')
-  public remoteVideo: ElementRef<HTMLVideoElement>;
+  private remoteVideo: ElementRef<HTMLVideoElement>;
 
   get initial() {
     return `${window.location.protocol}//${window.location.host}/join/`;
   }
 
-  constructor(private route: ActivatedRoute) {}
+  get owner(): User {
+    if (this.ownerUsername) {
+      return this.users.entities[this.ownerUsername];
+    }
+  }
+
+  get username(): string {
+    return this.auth.currentUser;
+  }
+
+  constructor(
+    private auth: AuthService,
+    private route: ActivatedRoute,
+    private users: UsersService
+  ) {}
 
   ngOnInit() {
     this.room = this.route.snapshot.paramMap.get('id');
@@ -71,6 +96,7 @@ export class JoinComponent {
           console.log('joined: ' + this.room);
           this.isChannelReady = true;
           this.ownerId = msg.from;
+          this.ownerUsername = msg.body;
         }
         break;
       case 'got-user-media':
@@ -98,6 +124,12 @@ export class JoinComponent {
           }
         }
         break;
+      case 'room-not-found':
+        this.missing = true;
+        break;
+      case 'chat':
+        this.chats = [...this.chats, { from: msg.from, body: msg.body }];
+        break;
       case 'bye':
         {
           if (this.isStarted) {
@@ -119,6 +151,7 @@ export class JoinComponent {
 
   @HostListener('window:beforeunload', ['$event'])
   beforeunloadHandler(event) {
+    this.stop();
     this.sendMessage({ type: 'bye', to: this.ownerId });
   }
 
@@ -195,12 +228,39 @@ export class JoinComponent {
 
   private handleRemoteHangup() {
     console.log('Session terminated.');
+    this.missing = true;
     this.stop();
   }
 
   private stop() {
+    if (!this.isStarted) {
+      return;
+    }
+    let tracks = this.remoteStream.getTracks();
+
+    tracks.forEach(function(track) {
+      track.stop();
+    });
+    this.remoteVideo.nativeElement.srcObject = null;
+
     this.isStarted = false;
     this.pc.close();
     this.pc = null;
+  }
+
+  ngOnDestroy() {
+    this.stop();
+  }
+
+  send() {
+    this.sendMessage({
+      type: 'chat',
+      body: this.chat.nativeElement.textContent,
+    });
+    this.chat.nativeElement.innerHTML = '';
+  }
+
+  private scrollBottom() {
+    this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
   }
 }

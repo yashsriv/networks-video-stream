@@ -1,12 +1,37 @@
 <div class="video-container" fxLayout="row" fxLayout.lt-sm="column" fxLayoutAlign="start stretch">
   <video fxFlex="0 1 auto" #remoteVideo autoplay playsinline>
   </video>
-  <div fxFlex="1 1 auto" class="chats">
+  <div fxFlex="1 1 auto" class="chats" fxLayout="column">
     <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
       <span class="url mat-headline">
         {{ initial }}{{ room }}
       </span>
       <button mat-stroked-button class="copy" ngxClipboard [cbContent]="initial+room">Copy</button>
     </div>
+    <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px" *ngIf="owner">
+      <span class="url mat-title"> Owner: </span>
+      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px" matRipple class="user-info">
+        <div class="img" [style.background-image]="owner | DP"></div>
+        <span class="name" fxHide.lt-sm> {{ owner.name }} </span>
+      </div>
+    </div>
+    <div fxFlex="grow" class="chat-wrapper">
+      <div class="chat-container" #chatContainer>
+        <div class="person-chats">
+          <div *ngFor="let chat of chats" class="each-chat">
+            <div [fxLayout]="chat.from === username ? 'row-reverse' : 'row'" [fxLayoutAlign]="chat.from === username ? 'start end' : 'start end'" fxLayoutGap="10px">
+              <div class="chat-img" [style.background-image]="chat.from | getUser | DP"></div>
+              <div class="chat-body" [class.sent]="chat.from === username"> {{ chat.body }} </div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input">
+          <div #chat contenteditable data-placeholder="Enter a message" (keyup.enter)="send()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="missing-overlay" fxLayout="column" fxLayoutAlign="center center" *ngIf="missing">
+    <span class="mat-display-2"> This room does not exist anymore </span>
   </div>
 </div>

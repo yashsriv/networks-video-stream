@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:420a25d3e0b5c88df3e842c9e7dd6110e0055fa60e562676f9e8e9532f5036f5"
+  name = "github.com/AubSs/fasthttplogger"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7dab642e7dabf86dc3075609e76c98f954b5ad16"
+
+[[projects]]
   digest = "1:9c5ce2fc44ac5119e9673407a0ce83762e637ce7071975f43ddfc9b58f674258"
   name = "github.com/fasthttp/router"
   packages = ["."]
@@ -61,6 +69,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/AubSs/fasthttplogger",
     "github.com/fasthttp/router",
     "github.com/fasthttp/websocket",
     "github.com/valyala/fasthttp",

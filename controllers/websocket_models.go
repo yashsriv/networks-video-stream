@@ -3,11 +3,13 @@ package controllers
 type websocketMsgType string
 
 const (
-	create       websocketMsgType = "create-room"
+	chat         websocketMsgType = "chat"
+	create                        = "create-room"
 	created                       = "created-room"
 	join                          = "join-room"
 	joined                        = "joined-room"
 	joinedInform                  = "joined-room-inform"
+	notFound                      = "room-not-found"
 )
 
 type websocketMsg struct {

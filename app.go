@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 
+	"github.com/AubSs/fasthttplogger"
 	"github.com/valyala/fasthttp"
 
 	"github.com/yashsriv/networks-video-stream/controllers"
@@ -18,7 +19,7 @@ func main() {
 
 	router := controllers.NewRouter()
 
-	if err := fasthttp.ListenAndServe(*addr, router.Handler); err != nil {
+	if err := fasthttp.ListenAndServe(*addr, fasthttplogger.Short(router.Handler)); err != nil {
 		log.Fatalf("Error in ListenAndServe: %s", err)
 	}
 }

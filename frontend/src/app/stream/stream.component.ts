@@ -1,10 +1,5 @@
-import {
-  Component,
-  HostListener,
-  ViewChild,
-  ElementRef,
-  NgZone,
-} from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { AuthService } from '../auth.service';
 
 const pcConfig = {
   iceServers: [
@@ -33,13 +28,27 @@ export class StreamComponent {
   private room = '';
   private socket: WebSocket;
 
-  @ViewChild('localVideo')
-  public localVideo: ElementRef<HTMLVideoElement>;
+  public chats: { from: string; body: string }[] = [];
 
-  constructor(private zone: NgZone) {}
+  @ViewChild('chatContainer')
+  private chatContainer: ElementRef<HTMLDivElement>;
+  @ViewChild('chat')
+  private chat: ElementRef<HTMLDivElement>;
+  @ViewChild('localVideo')
+  private localVideo: ElementRef<HTMLVideoElement>;
+
+  constructor(private auth: AuthService) {}
 
   get initial() {
     return `${window.location.protocol}//${window.location.host}/join/`;
+  }
+
+  get username(): string {
+    return this.auth.currentUser;
+  }
+
+  get numClients(): number {
+    return Object.keys(this.id_idx).length;
   }
 
   ngOnInit() {
@@ -83,6 +92,7 @@ export class StreamComponent {
     console.log('Adding local stream.');
     this.localStream = stream;
     this.localVideo.nativeElement.srcObject = stream;
+    this.localVideo.nativeElement.muted = true;
     this.sendMessage({ type: 'got-user-media' });
   }
 
@@ -122,6 +132,10 @@ export class StreamComponent {
             this.id_idx[msg.from].addIceCandidate(candidate);
           }
         }
+        break;
+      case 'chat':
+        this.chats = [...this.chats, { from: msg.from, body: msg.body }];
+        window.setTimeout(() => this.scrollBottom(), 10);
         break;
       case 'bye':
         {
@@ -212,6 +226,12 @@ export class StreamComponent {
     });
     this.id_idx = {};
     this.sendMessage({ type: 'bye' });
+    let tracks = this.localStream.getTracks();
+
+    tracks.forEach(function(track) {
+      track.stop();
+    });
+    this.localVideo.nativeElement.srcObject = null;
   }
 
   private handleRemoteHangup(id) {
@@ -221,8 +241,24 @@ export class StreamComponent {
     delete this.id_idx[id];
   }
 
+  ngOnDestroy() {
+    this.hangup();
+  }
+
   @HostListener('window:beforeunload', ['$event'])
   beforeunloadHandler(event) {
     this.sendMessage({ type: 'bye' });
+  }
+
+  send() {
+    this.sendMessage({
+      type: 'chat',
+      body: this.chat.nativeElement.textContent,
+    });
+    this.chat.nativeElement.innerHTML = '';
+  }
+
+  private scrollBottom() {
+    this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
   }
 }
