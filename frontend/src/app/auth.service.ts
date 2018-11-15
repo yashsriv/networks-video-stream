@@ -28,7 +28,9 @@ export class AuthService {
   }
 
   logout() {
-    return this.http.post('/logout', {});
+    return this.http
+      .post('/logout', {})
+      .pipe(tap(() => (this.loggedIn = false)));
   }
 
   check(): Observable<boolean> {

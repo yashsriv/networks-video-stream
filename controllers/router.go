@@ -12,6 +12,7 @@ func NewRouter() *router.Router {
 	router.GET("/ws", Auth(Upgrade))
 	router.GET("/me", Auth(Me))
 	router.POST("/login", Login)
+	router.POST("/logout", Logout)
 	return router
 }
 

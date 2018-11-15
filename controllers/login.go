@@ -20,3 +20,9 @@ func Login(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetCookie(&c)
 	ctx.SetStatusCode(fasthttp.StatusAccepted)
 }
+
+// Logout controller is used to log out user
+func Logout(ctx *fasthttp.RequestCtx) {
+	ctx.Response.Header.DelClientCookie("username")
+	ctx.SetStatusCode(fasthttp.StatusAccepted)
+}
