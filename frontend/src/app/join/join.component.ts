@@ -4,7 +4,7 @@ import { UsersService } from '../users.service';
 import { User } from '../models/user';
 import { AuthService } from '../auth.service';
 
-const pcConfig = {
+const pcConfig: RTCConfiguration = {
   iceServers: [
     {
       urls: 'stun:stun.l.google.com:19302',
@@ -159,7 +159,7 @@ export class JoinComponent {
 
   private createPeerConnection() {
     try {
-      this.pc = new RTCPeerConnection(null);
+      this.pc = new RTCPeerConnection(pcConfig);
       this.pc.onicecandidate = ev => this.handleIceCandidate(ev);
       (<any>this.pc).onaddstream = ev => this.handleRemoteStreamAdded(ev);
       (<any>this.pc).onremovestream = ev => this.handleRemoteStreamRemoved(ev);

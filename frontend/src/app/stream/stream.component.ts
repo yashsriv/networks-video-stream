@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { AuthService } from '../auth.service';
 
-const pcConfig = {
+const pcConfig: RTCConfiguration = {
   iceServers: [
     {
       urls: 'stun:stun.l.google.com:19302',
@@ -161,7 +161,7 @@ export class StreamComponent {
 
   private createPeerConnection(id: string) {
     try {
-      var pc = new RTCPeerConnection(null);
+      var pc = new RTCPeerConnection(pcConfig);
       pc.onicecandidate = ev => this.handleIceCandidate(id)(ev);
       this.id_idx[id] = pc;
       console.log('Created RTCPeerConnnection with ', id);
