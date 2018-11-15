@@ -65,7 +65,9 @@ export class JoinComponent {
 
   ngOnInit() {
     this.room = this.route.snapshot.paramMap.get('id');
-    const socket = new WebSocket('ws://' + window.location.host + '/ws');
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const url = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(url);
     this.socket = socket;
     socket.onopen = ev => {
       this.sendMessage({ type: 'join-room', body: { room: this.room } });

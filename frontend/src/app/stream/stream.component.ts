@@ -52,7 +52,9 @@ export class StreamComponent {
   }
 
   ngOnInit() {
-    const socket = new WebSocket('ws://' + window.location.host + '/ws');
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const url = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(url);
     this.socket = socket;
 
     socket.onopen = event => {
