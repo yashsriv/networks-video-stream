@@ -136,6 +136,8 @@ export class StreamComponent {
         }
         break;
       case 'chat':
+        const audio = new Audio('/assets/notify.mp3');
+        audio.play();
         this.chats = [...this.chats, { from: msg.from, body: msg.body }];
         window.setTimeout(() => this.scrollBottom(), 10);
         break;
