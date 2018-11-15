@@ -26,15 +26,15 @@ export class LoginComponent implements OnInit {
 
   public loginForm = this.fb.group({
     username: ['', Validators.required],
-    password: [''],
+    password: ['', Validators.required],
   });
 
   public selectedUser: User;
 
   @ViewChild('username')
   usernameInput: ElementRef<HTMLInputElement>;
-  // @ViewChild('password')
-  // passwordInput: ElementRef<HTMLInputElement>;
+  @ViewChild('password')
+  passwordInput: ElementRef<HTMLInputElement>;
 
   constructor(
     private auth: AuthService,
@@ -71,7 +71,7 @@ export class LoginComponent implements OnInit {
 
   selected(event: MatAutocompleteSelectedEvent) {
     this.selectedUser = this.users.entities[event.option.value];
-    // this.passwordInput.nativeElement.focus();
+    this.passwordInput.nativeElement.focus();
   }
 
   clearSelection() {
@@ -81,7 +81,7 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit() {
-    this.auth.login(this.loginForm.value.username).subscribe(() => {
+    this.auth.login(this.loginForm.value).subscribe(() => {
       this.router.navigate(['/']);
     });
   }

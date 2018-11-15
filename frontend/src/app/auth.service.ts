@@ -15,11 +15,11 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  login(username: string): Observable<void> {
-    return this.http.post('/login', { username }, { observe: 'response' }).pipe(
+  login(body: { username: string; password?: string }): Observable<void> {
+    return this.http.post('/login', body, { observe: 'response' }).pipe(
       tap(resp => {
         if (resp.status === 202) {
-          this.currentUser = username;
+          this.currentUser = body.username;
           this.loggedIn = true;
         }
       }),
