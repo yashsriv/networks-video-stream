@@ -27,6 +27,7 @@ import { StreamComponent } from './stream';
 import { JoinComponent } from './join';
 import { BasicComponent } from './basic';
 import { GetUserPipe } from './get-user-pipe/get-user.pipe';
+import { NotFoundComponent } from './not-found';
 
 @NgModule({
   declarations: [
@@ -37,6 +38,7 @@ import { GetUserPipe } from './get-user-pipe/get-user.pipe';
     HomeComponent,
     JoinComponent,
     LoginComponent,
+    NotFoundComponent,
     StreamComponent,
   ],
   imports: [

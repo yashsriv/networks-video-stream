@@ -6,6 +6,7 @@ import { HomeComponent } from './home';
 import { StreamComponent } from './stream';
 import { JoinComponent } from './join';
 import { BasicComponent } from './basic';
+import { NotFoundComponent } from './not-found';
 
 const routes: Routes = [
   {
@@ -19,6 +20,7 @@ const routes: Routes = [
     ],
   },
   { path: 'signin', component: LoginComponent, canActivate: [AuthGuardNot] },
+  { path: '**', component: NotFoundComponent },
 ];
 
 @NgModule({
