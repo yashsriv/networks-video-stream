@@ -23,7 +23,7 @@ const sdpConstraints = {
   styleUrls: ['./join.component.scss'],
 })
 export class JoinComponent {
-  private room;
+  public room;
   private isChannelReady = false;
   private isStarted = false;
   private pc: RTCPeerConnection;
@@ -32,7 +32,7 @@ export class JoinComponent {
   private remoteStream: MediaStream;
   private turnReady;
   private socket: WebSocket;
-  private missing = false;
+  public missing = false;
 
   public chats: { from: string; body: string }[] = [];
 

@@ -25,7 +25,7 @@ export class StreamComponent {
   private id_idx: { [key: string]: RTCPeerConnection } = {};
   private turnReady;
 
-  private room = '';
+  public room = '';
   private socket: WebSocket;
 
   public chats: { from: string; body: string }[] = [];
