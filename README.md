@@ -16,17 +16,18 @@ $ cd $GOPATH/src/github.com/yashsriv/networks-video-stream
 $ dep ensure -v
 ```
 
-Run server:
-```shell
-$ go run app.go
-```
-
 Install npm/yarn, and then:
 ```shell
 $ cd frontend
 $ npm install
 # or
 $ yarn install
+```
+
+## Dev Setup
+Run server:
+```shell
+$ go run app.go
 ```
 
 Now run angular frontend:
@@ -38,3 +39,16 @@ $ yarn start
 ```
 
 Open up http://localhost:4200 and profit!
+
+## Prod Setup
+
+Run build.sh:
+```shell
+$ ./build.sh
+```
+
+Run main server:
+```shell
+$ cd dist
+$ ./server
+```
